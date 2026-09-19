@@ -7,6 +7,7 @@ import { computeAge } from "@/lib/age";
 import { formatDuration, formatTime, isToday } from "@/lib/format";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
+import { useDiaper } from "@/lib/useDiaper";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -21,8 +22,14 @@ export default function DashboardPage() {
   const { baby, active, sessions, elapsedSeconds } = useFeeding();
   const { active: sleepActive, sessions: sleepSessions, elapsedSeconds: sleepElapsedSeconds } =
     useSleep();
+  const { events: diaperEvents } = useDiaper();
 
   const age = baby ? computeAge(baby.birthDate) : null;
+
+  const todayDiaperCount = useMemo(
+    () => diaperEvents.filter((e) => isToday(e.time)).length,
+    [diaperEvents]
+  );
 
   const today = useMemo(() => {
     const todaySessions = sessions.filter((s) => isToday(s.startTime));
@@ -106,10 +113,12 @@ export default function DashboardPage() {
           </span>
           <span className="text-[11px] text-text-muted leading-tight">Sommeil</span>
         </div>
-        <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1 opacity-60">
+        <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1">
           <span className="text-lg">💧</span>
-          <span className="text-base font-semibold">—</span>
-          <span className="text-[11px] text-text-muted leading-tight">Couches bientôt</span>
+          <span className="text-base font-semibold tabular-nums">
+            {todayDiaperCount > 0 ? todayDiaperCount : "—"}
+          </span>
+          <span className="text-[11px] text-text-muted leading-tight">Couches</span>
         </div>
       </div>
 

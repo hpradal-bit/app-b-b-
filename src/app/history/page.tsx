@@ -5,6 +5,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
+import { useDiaper } from "@/lib/useDiaper";
 
 interface DayStat {
   key: string;
@@ -15,11 +16,15 @@ interface DayStat {
   feedingCount: number;
   sleepTotal: number;
   sleepCount: number;
+  diaperCount: number;
+  diaperWet: number;
+  diaperDirty: number;
 }
 
 export default function HistoryPage() {
   const { sessions } = useFeeding();
   const { sessions: sleepSessions } = useSleep();
+  const { events: diaperEvents } = useDiaper();
 
   const days = useMemo(() => {
     const byDay = new Map<string, DayStat>();
@@ -36,6 +41,9 @@ export default function HistoryPage() {
         feedingCount: 0,
         sleepTotal: 0,
         sleepCount: 0,
+        diaperCount: 0,
+        diaperWet: 0,
+        diaperDirty: 0,
       };
       byDay.set(key, created);
       return created;
@@ -53,9 +61,15 @@ export default function HistoryPage() {
       entry.sleepTotal += s.durationSeconds;
       entry.sleepCount += 1;
     }
+    for (const e of diaperEvents) {
+      const entry = get(e.time);
+      entry.diaperCount += 1;
+      if (e.kind === "wet" || e.kind === "both") entry.diaperWet += 1;
+      if (e.kind === "dirty" || e.kind === "both") entry.diaperDirty += 1;
+    }
 
     return Array.from(byDay.values()).sort((a, b) => b.key.localeCompare(a.key));
-  }, [sessions, sleepSessions]);
+  }, [sessions, sleepSessions, diaperEvents]);
 
   return (
     <div className="max-w-md mx-auto px-4 pt-6">
@@ -94,6 +108,16 @@ export default function HistoryPage() {
                   <span className="text-sm font-semibold tabular-nums">
                     {formatDuration(d.sleepTotal)}
                   </span>
+                </div>
+              )}
+
+              {d.diaperCount > 0 && (
+                <div className="mt-1.5 flex items-center justify-between">
+                  <span className="text-xs text-text-muted">
+                    💧 {d.diaperWet} mouillée{d.diaperWet > 1 ? "s" : ""} · 💩 {d.diaperDirty} selle
+                    {d.diaperDirty > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-sm font-semibold tabular-nums">{d.diaperCount}</span>
                 </div>
               )}
             </div>

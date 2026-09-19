@@ -38,3 +38,22 @@ export interface ActiveSleep {
   babyId: string;
   startTime: string; // ISO datetime
 }
+
+export type DiaperKind = "wet" | "dirty" | "both";
+
+export interface DiaperEvent {
+  id: string;
+  babyId: string;
+  kind: DiaperKind;
+  time: string; // ISO datetime
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CryingEvent {
+  id: string;
+  babyId: string;
+  time: string; // ISO datetime
+  causes: string[]; // labels the parent identified as plausible, informational only
+  createdAt: string;
+}

@@ -4,6 +4,9 @@ import type {
   ActiveSleep,
   Baby,
   Breast,
+  CryingEvent,
+  DiaperEvent,
+  DiaperKind,
   FeedingSession,
   SleepSession,
 } from "./types";
@@ -13,6 +16,8 @@ const KEYS = {
   feedingSessions: "bb:feeding_sessions",
   activeFeeding: "bb:active_feeding",
   sleepSessions: "bb:sleep_sessions",
+  diaperEvents: "bb:diaper_events",
+  cryingEvents: "bb:crying_events",
   activeSleep: "bb:active_sleep",
 } as const;
 
@@ -250,5 +255,82 @@ export function stopActiveSleep(): SleepSession | null {
  */
 export function getLastWakeTime(babyId: string): string | null {
   const sessions = getSleepSessions(babyId).sort((a, b) => b.endTime.localeCompare(a.endTime));
+  return sessions[0]?.endTime ?? null;
+}
+
+// ---------- Diaper events ----------
+// Unlike feeding/sleep, a diaper change is instantaneous — logged as a
+// single timestamp, not a start/end session.
+
+export function getDiaperEvents(babyId: string): DiaperEvent[] {
+  return readJSON<DiaperEvent[]>(KEYS.diaperEvents, []).filter((e) => e.babyId === babyId);
+}
+
+function saveAllDiaperEvents(events: DiaperEvent[]) {
+  writeJSON(KEYS.diaperEvents, events);
+  notify();
+}
+
+export function addDiaperEvent(babyId: string, kind: DiaperKind, time: string): DiaperEvent {
+  const event: DiaperEvent = {
+    id: uid(),
+    babyId,
+    kind,
+    time,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const all = readJSON<DiaperEvent[]>(KEYS.diaperEvents, []);
+  all.push(event);
+  saveAllDiaperEvents(all);
+  return event;
+}
+
+export function updateDiaperEvent(
+  id: string,
+  patch: Partial<Pick<DiaperEvent, "kind" | "time">>
+): void {
+  const all = readJSON<DiaperEvent[]>(KEYS.diaperEvents, []);
+  const idx = all.findIndex((e) => e.id === id);
+  if (idx === -1) return;
+  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
+  saveAllDiaperEvents(all);
+}
+
+export function deleteDiaperEvent(id: string): void {
+  const all = readJSON<DiaperEvent[]>(KEYS.diaperEvents, []);
+  saveAllDiaperEvents(all.filter((e) => e.id !== id));
+}
+
+export function getLastDiaperEvent(babyId: string): DiaperEvent | null {
+  const events = getDiaperEvents(babyId).sort((a, b) => b.time.localeCompare(a.time));
+  return events[0] ?? null;
+}
+
+// ---------- Crying episodes ----------
+
+export function getCryingEvents(babyId: string): CryingEvent[] {
+  return readJSON<CryingEvent[]>(KEYS.cryingEvents, []).filter((e) => e.babyId === babyId);
+}
+
+export function addCryingEvent(babyId: string, causes: string[]): CryingEvent {
+  const event: CryingEvent = {
+    id: uid(),
+    babyId,
+    time: new Date().toISOString(),
+    causes,
+    createdAt: new Date().toISOString(),
+  };
+  const all = readJSON<CryingEvent[]>(KEYS.cryingEvents, []);
+  all.push(event);
+  writeJSON(KEYS.cryingEvents, all);
+  notify();
+  return event;
+}
+
+// ---------- Cross-module context (used by the crying guide) ----------
+
+export function getLastFeedingEnd(babyId: string): string | null {
+  const sessions = getFeedingSessions(babyId).sort((a, b) => b.endTime.localeCompare(a.endTime));
   return sessions[0]?.endTime ?? null;
 }
