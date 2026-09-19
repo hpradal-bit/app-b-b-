@@ -1,0 +1,10 @@
+{
+  "name": "Câlin — suivi du nouveau-né",
+  "short_name": "Câlin",
+  "description": "Le compagnon des premières semaines : tétées, sommeil, couches, pleurs.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0c10",
+  "theme_color": "#0b0c10",
+  "icons": []
+}

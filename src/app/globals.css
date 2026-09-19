@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --border: #ece8e2;
+  --text: #1c1b1a;
+  --text-muted: #6b6763;
+  --accent: #7c6cf0;
+  --accent-strong: #5f4de0;
+  --left: #f0955f;
+  --right: #5c9ee0;
+  --danger: #e0605c;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+.dark {
+  --bg: #0b0c10;
+  --surface: #15171c;
+  --surface-raised: #1b1e24;
+  --border: #262a32;
+  --text: #f2f1ef;
+  --text-muted: #9a978f;
+  --accent: #9b8bff;
+  --accent-strong: #b3a5ff;
+  --left: #f0a878;
+  --right: #7db2e8;
+  --danger: #e88783;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-left: var(--left);
+  --color-right: var(--right);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
