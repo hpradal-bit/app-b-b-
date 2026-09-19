@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { computeAge } from "@/lib/age";
 import { formatDuration, formatTime, isToday } from "@/lib/format";
 import { useFeeding } from "@/lib/useFeeding";
+import { useSleep } from "@/lib/useSleep";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -18,6 +19,8 @@ function greeting(): string {
 
 export default function DashboardPage() {
   const { baby, active, sessions, elapsedSeconds } = useFeeding();
+  const { active: sleepActive, sessions: sleepSessions, elapsedSeconds: sleepElapsedSeconds } =
+    useSleep();
 
   const age = baby ? computeAge(baby.birthDate) : null;
 
@@ -27,6 +30,13 @@ export default function DashboardPage() {
     if (active) total += elapsedSeconds(active.breast);
     return { count: todaySessions.length + (active ? 1 : 0), total };
   }, [sessions, active, elapsedSeconds]);
+
+  const todaySleepTotal = useMemo(() => {
+    const base = sleepSessions
+      .filter((s) => isToday(s.startTime))
+      .reduce((sum, s) => sum + s.durationSeconds, 0);
+    return sleepActive ? base + sleepElapsedSeconds() : base;
+  }, [sleepSessions, sleepActive, sleepElapsedSeconds]);
 
   const lastSession = sessions.slice().sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
 
@@ -64,6 +74,23 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {!active && sleepActive && (
+        <div className="mt-5 rounded-2xl p-4 flex items-center justify-between text-white bg-accent">
+          <div>
+            <p className="text-xs opacity-90">Raphaël dort depuis</p>
+            <p className="text-2xl font-semibold tabular-nums mt-0.5">
+              {formatDuration(sleepElapsedSeconds())}
+            </p>
+          </div>
+          <Link
+            href="/sleep"
+            className="text-sm font-medium bg-white/20 px-3 py-2 rounded-xl active:scale-95 transition-transform"
+          >
+            Ouvrir
+          </Link>
+        </div>
+      )}
+
       <div className="mt-5 grid grid-cols-3 gap-3">
         <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1">
           <span className="text-lg">🍼</span>
@@ -72,10 +99,12 @@ export default function DashboardPage() {
             Tétées{today.total > 0 ? ` · ${formatDuration(today.total)}` : ""}
           </span>
         </div>
-        <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1 opacity-60">
+        <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1">
           <span className="text-lg">😴</span>
-          <span className="text-base font-semibold">—</span>
-          <span className="text-[11px] text-text-muted leading-tight">Sommeil bientôt</span>
+          <span className="text-base font-semibold tabular-nums">
+            {todaySleepTotal > 0 ? formatDuration(todaySleepTotal) : "—"}
+          </span>
+          <span className="text-[11px] text-text-muted leading-tight">Sommeil</span>
         </div>
         <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1 opacity-60">
           <span className="text-lg">💧</span>

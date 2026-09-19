@@ -23,3 +23,18 @@ export interface ActiveFeeding {
   breast: Breast;
   startTime: string; // ISO datetime
 }
+
+export interface SleepSession {
+  id: string;
+  babyId: string;
+  startTime: string; // ISO datetime
+  endTime: string; // ISO datetime
+  durationSeconds: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActiveSleep {
+  babyId: string;
+  startTime: string; // ISO datetime
+}
