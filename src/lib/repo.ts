@@ -67,6 +67,23 @@ export function updateBaby(baby: Baby): void {
   notify();
 }
 
+/**
+ * Manually (re)loads the carnet-transcribed feeding history for a device
+ * that already had a baby profile before the seed import existed. Safe to
+ * call more than once: seed sessions have fixed ids, so already-imported
+ * ones are skipped rather than duplicated.
+ */
+export function importSeedFeedingHistory(babyId: string): number {
+  const seed = buildSeedFeedingSessions(babyId);
+  const all = readJSON<FeedingSession[]>(KEYS.feedingSessions, []);
+  const existingIds = new Set(all.map((s) => s.id));
+  const toAdd = seed.filter((s) => !existingIds.has(s.id));
+  if (toAdd.length === 0) return 0;
+  writeJSON(KEYS.feedingSessions, [...all, ...toAdd]);
+  notify();
+  return toAdd.length;
+}
+
 // ---------- Feeding sessions ----------
 
 export function getFeedingSessions(babyId: string): FeedingSession[] {

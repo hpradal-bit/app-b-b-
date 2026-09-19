@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
+import { importSeedFeedingHistory } from "@/lib/repo";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
 import { useDiaper } from "@/lib/useDiaper";
@@ -31,9 +32,20 @@ function shortDayLabel(key: string): string {
 }
 
 export default function HistoryPage() {
-  const { sessions } = useFeeding();
+  const { baby, sessions } = useFeeding();
   const { sessions: sleepSessions } = useSleep();
   const { events: diaperEvents } = useDiaper();
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+
+  const handleImport = () => {
+    if (!baby) return;
+    const added = importSeedFeedingHistory(baby.id);
+    setImportMessage(
+      added > 0
+        ? `${added} tétée${added > 1 ? "s" : ""} importée${added > 1 ? "s" : ""} depuis le carnet.`
+        : "Le carnet était déjà entièrement importé."
+    );
+  };
 
   const days = useMemo(() => {
     const byDay = new Map<string, DayStat>();
@@ -112,6 +124,22 @@ export default function HistoryPage() {
       <div className="flex items-center justify-between mb-5">
         <h1 className="text-[22px] font-semibold">Historique</h1>
         <ThemeToggle />
+      </div>
+
+      <div className="mb-5 rounded-2xl bg-surface border border-border p-4">
+        <p className="text-sm font-medium">Historique du carnet papier</p>
+        <p className="text-xs text-text-muted mt-1">
+          Recharge les tétées notées à la main depuis la naissance de Raphaël (6 au 19
+          septembre) si elles n&apos;apparaissent pas ci-dessous.
+        </p>
+        <button
+          type="button"
+          onClick={handleImport}
+          className="mt-3 text-sm font-medium bg-accent text-white rounded-xl px-4 py-2 active:scale-[0.98] transition-transform"
+        >
+          Importer l&apos;historique
+        </button>
+        {importMessage && <p className="mt-2 text-xs text-accent">{importMessage}</p>}
       </div>
 
       {hasFeedingHistory && (
