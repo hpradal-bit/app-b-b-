@@ -19,19 +19,22 @@ export default function FeedingPage() {
   const totals = useMemo(() => {
     let left = 0;
     let right = 0;
+    let unknown = 0;
     for (const s of todaySessions) {
       if (s.breast === "left") left += s.durationSeconds;
-      else right += s.durationSeconds;
+      else if (s.breast === "right") right += s.durationSeconds;
+      else unknown += s.durationSeconds;
     }
     const activeExtra = active ? elapsedSeconds(active.breast) : 0;
     if (active?.breast === "left") left += activeExtra;
     if (active?.breast === "right") right += activeExtra;
-    const total = left + right;
-    return { left, right, total, count: todaySessions.length + (active ? 1 : 0) };
+    const total = left + right + unknown;
+    return { left, right, unknown, total, count: todaySessions.length + (active ? 1 : 0) };
   }, [todaySessions, active, elapsedSeconds]);
 
-  const leftPct = totals.total > 0 ? Math.round((totals.left / totals.total) * 100) : 0;
-  const rightPct = totals.total > 0 ? 100 - leftPct : 0;
+  const sideTotal = totals.left + totals.right;
+  const leftPct = sideTotal > 0 ? Math.round((totals.left / sideTotal) * 100) : 0;
+  const rightPct = sideTotal > 0 ? 100 - leftPct : 0;
 
   if (!baby) return null;
 
@@ -64,7 +67,7 @@ export default function FeedingPage() {
           <span className="text-sm text-text-muted">Total aujourd&apos;hui</span>
           <span className="text-lg font-semibold tabular-nums">{formatDuration(totals.total)}</span>
         </div>
-        {totals.total > 0 && (
+        {sideTotal > 0 && (
           <>
             <div className="mt-3 h-2 rounded-full overflow-hidden flex bg-border">
               <div style={{ width: `${leftPct}%`, background: "var(--left)" }} />
@@ -75,6 +78,11 @@ export default function FeedingPage() {
               <span>Droit {rightPct}% · {formatDuration(totals.right)}</span>
             </div>
           </>
+        )}
+        {totals.unknown > 0 && (
+          <p className="mt-2 text-xs text-text-muted">
+            + {formatDuration(totals.unknown)} sans côté précisé
+          </p>
         )}
       </div>
 

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const items = [
   { href: "/", label: "Aujourd'hui", icon: "home" },
   { href: "/feeding", label: "Tétées", icon: "bottle" },
+  { href: "/sleep", label: "Sommeil", icon: "moon" },
   { href: "/history", label: "Historique", icon: "history" },
 ] as const;
 
@@ -25,6 +26,18 @@ function Icon({ name }: { name: (typeof items)[number]["icon"] }) {
         <rect x="9" y="8" width="6" height="13" rx="2" stroke="currentColor" strokeWidth="1.8" />
         <path d="M10 8V5.5a2 2 0 0 1 4 0V8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         <path d="M9 13h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (name === "moon") {
+    return (
+      <svg {...common}>
+        <path
+          d="M19.5 14.2A8 8 0 1 1 9.8 4.5a6.3 6.3 0 0 0 9.7 9.7Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
       </svg>
     );
   }

@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { deleteFeedingSession, updateFeedingSession } from "@/lib/repo";
 import { formatDuration, formatTime } from "@/lib/format";
-import type { FeedingSession } from "@/lib/types";
+import type { Breast, FeedingSession } from "@/lib/types";
+
+const SIDE_LABEL: Record<Breast, string> = {
+  left: "Gauche",
+  right: "Droit",
+  unknown: "Non précisé",
+};
 
 function toInputTime(iso: string): string {
   const d = new Date(iso);
@@ -21,15 +27,18 @@ export default function SessionRow({ session }: { session: FeedingSession }) {
   const [editing, setEditing] = useState(false);
   const [start, setStart] = useState(toInputTime(session.startTime));
   const [end, setEnd] = useState(toInputTime(session.endTime));
+  const [breast, setBreast] = useState<Breast>(session.breast);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const color = session.breast === "left" ? "var(--left)" : "var(--right)";
-  const sideLabel = session.breast === "left" ? "Gauche" : "Droit";
+  const color =
+    session.breast === "left" ? "var(--left)" : session.breast === "right" ? "var(--right)" : "var(--text-muted)";
+  const sideLabel = SIDE_LABEL[session.breast];
 
   const save = () => {
     updateFeedingSession(session.id, {
       startTime: withInputTime(session.startTime, start),
       endTime: withInputTime(session.endTime, end),
+      breast,
     });
     setEditing(false);
   };
@@ -37,9 +46,18 @@ export default function SessionRow({ session }: { session: FeedingSession }) {
   if (editing) {
     return (
       <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col gap-3">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
-          <span className="text-sm font-medium">{sideLabel}</span>
+        <div className="flex gap-2">
+          {(["left", "right", "unknown"] as Breast[]).map((b) => (
+            <button
+              key={b}
+              onClick={() => setBreast(b)}
+              className={`flex-1 text-xs font-medium py-2 rounded-lg border ${
+                breast === b ? "bg-accent text-white border-accent" : "border-border text-text-muted"
+              }`}
+            >
+              {SIDE_LABEL[b]}
+            </button>
+          ))}
         </div>
         <div className="flex items-center gap-3">
           <label className="flex-1 text-xs text-text-muted">

@@ -1,4 +1,4 @@
-export type Breast = "left" | "right";
+export type Breast = "left" | "right" | "unknown";
 
 export interface Baby {
   id: string;

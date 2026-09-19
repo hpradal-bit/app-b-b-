@@ -1,4 +1,5 @@
 import { readJSON, writeJSON } from "./storage";
+import { buildSeedFeedingSessions } from "./seedFeedingHistory";
 import type {
   ActiveFeeding,
   ActiveSleep,
@@ -54,6 +55,9 @@ export function getActiveBaby(): Baby {
   const babies = getBabies();
   if (babies.length > 0) return babies[0];
   writeJSON(KEYS.babies, [DEFAULT_BABY]);
+  // First-ever launch on this device: pre-load the real feeding history kept
+  // on paper since birth, so the app isn't empty on day one.
+  writeJSON(KEYS.feedingSessions, buildSeedFeedingSessions(DEFAULT_BABY.id));
   return DEFAULT_BABY;
 }
 
