@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import AddFeedingEntry from "@/components/AddFeedingEntry";
 import FeedingButton from "@/components/FeedingButton";
 import SessionRow from "@/components/SessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -11,6 +12,7 @@ import { useFeeding } from "@/lib/useFeeding";
 
 export default function FeedingPage() {
   const { baby, active, sessions, elapsedSeconds, tap } = useFeeding();
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const todaySessions = useMemo(
     () => sessions.filter((s) => isToday(s.startTime)).sort((a, b) => b.startTime.localeCompare(a.startTime)),
@@ -98,8 +100,23 @@ export default function FeedingPage() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[15px] font-semibold">Sessions du jour</h2>
-          <span className="text-xs text-text-muted">{tetteeCount}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-muted">{tetteeCount}</span>
+            <button
+              type="button"
+              onClick={() => setShowAddForm((v) => !v)}
+              aria-label="Ajouter une tétée manuellement"
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-bg text-text-muted active:scale-95 transition-transform"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
         </div>
+        {showAddForm && (
+          <AddFeedingEntry babyId={baby.id} onDone={() => setShowAddForm(false)} />
+        )}
         {todaySessions.length === 0 ? (
           <p className="text-sm text-text-muted py-6 text-center">
             {active ? "Première tétée en cours…" : "Aucune tétée enregistrée pour l'instant."}

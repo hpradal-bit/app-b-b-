@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import AddSleepEntry from "@/components/AddSleepEntry";
 import SleepSessionRow from "@/components/SleepSessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
 import { computeAge } from "@/lib/age";
@@ -12,6 +13,8 @@ import { useSleep } from "@/lib/useSleep";
 export default function SleepPage() {
   const { baby, active, sessions, elapsedSeconds, minutesAwake, lastWakeTime, toggle } =
     useSleep();
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const todaySessions = useMemo(
     () => sessions.filter((s) => isToday(s.startTime)).sort((a, b) => b.startTime.localeCompare(a.startTime)),
@@ -107,28 +110,63 @@ export default function SleepPage() {
         {active ? "Bébé se réveille — toucher pour arrêter" : "Bébé s'endort — toucher pour démarrer"}
       </button>
 
-      <details className="mt-6 group">
-        <summary className="flex items-center justify-between cursor-pointer list-none py-2">
-          <span className="text-[15px] font-semibold">Détail du jour</span>
-          <span className="text-xs text-text-muted">
-            {formatDuration(totalToday)} · {todaySessions.length + (active ? 1 : 0)} sommeil
-            {todaySessions.length + (active ? 1 : 0) > 1 ? "s" : ""}
-          </span>
-        </summary>
-        <div className="mt-3">
-          {todaySessions.length === 0 ? (
-            <p className="text-sm text-text-muted py-4 text-center">
-              {active ? "Premier sommeil en cours…" : "Aucun sommeil enregistré pour l'instant."}
-            </p>
-          ) : (
-            <div className="rounded-2xl bg-surface border border-border px-4">
-              {todaySessions.map((s) => (
-                <SleepSessionRow key={s.id} session={s} />
-              ))}
-            </div>
-          )}
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <button
+            type="button"
+            onClick={() => setDetailOpen((v) => !v)}
+            className="flex items-center gap-1.5"
+          >
+            <span className="text-[15px] font-semibold">Détail du jour</span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              className="text-text-muted transition-transform"
+              style={{ transform: detailOpen ? "rotate(180deg)" : "none" }}
+            >
+              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-text-muted">
+              {formatDuration(totalToday)} · {todaySessions.length + (active ? 1 : 0)} sommeil
+              {todaySessions.length + (active ? 1 : 0) > 1 ? "s" : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowAddForm((v) => !v)}
+              aria-label="Ajouter un sommeil manuellement"
+              className="w-7 h-7 rounded-full flex items-center justify-center bg-bg text-text-muted active:scale-95 transition-transform"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </details>
+
+        {showAddForm && baby && (
+          <AddSleepEntry babyId={baby.id} onDone={() => setShowAddForm(false)} />
+        )}
+
+        {detailOpen && (
+          <div>
+            {todaySessions.length === 0 ? (
+              <p className="text-sm text-text-muted py-4 text-center">
+                {active ? "Premier sommeil en cours…" : "Aucun sommeil enregistré pour l'instant."}
+              </p>
+            ) : (
+              <div className="rounded-2xl bg-surface border border-border px-4">
+                {todaySessions.map((s) => (
+                  <SleepSessionRow key={s.id} session={s} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <p className="mt-6 text-[11px] text-text-muted text-center leading-relaxed px-4">
         Ces repères et prédictions sont des tendances, pas des objectifs. Chaque bébé a son
