@@ -24,7 +24,8 @@ export function formatTime(iso: string): string {
 
 export function formatDayLabel(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const label = d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export function dateKey(iso: string): string {

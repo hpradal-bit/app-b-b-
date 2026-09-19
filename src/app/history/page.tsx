@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import DiaperEventRow from "@/components/DiaperEventRow";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
+import SessionRow from "@/components/SessionRow";
+import SleepSessionRow from "@/components/SleepSessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
 import { groupFeedingSessions } from "@/lib/feedingGrouping";
@@ -37,6 +40,7 @@ export default function HistoryPage() {
   const { sessions: sleepSessions } = useSleep();
   const { events: diaperEvents } = useDiaper();
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const handleImport = () => {
     if (!baby) return;
@@ -204,47 +208,114 @@ export default function HistoryPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-3">
-          {days.map((d) => (
-            <div key={d.key} className="rounded-2xl bg-surface border border-border p-4">
-              <span className="text-[15px] font-medium">{d.label}</span>
+          {days.map((d) => {
+            const expanded = expandedKey === d.key;
+            const daySessions = sessions
+              .filter((s) => dateKey(s.startTime) === d.key)
+              .sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const { numberBySessionId } = groupFeedingSessions(daySessions);
+            const daySleep = sleepSessions
+              .filter((s) => dateKey(s.startTime) === d.key)
+              .sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const dayDiapers = diaperEvents
+              .filter((e) => dateKey(e.time) === d.key)
+              .sort((a, b) => a.time.localeCompare(b.time));
 
-              {d.feedingCount > 0 && (
-                <div className="mt-2.5 flex items-center justify-between">
-                  <span className="text-xs text-text-muted">
-                    🍼 {d.feedingCount} tétée{d.feedingCount > 1 ? "s" : ""}
-                    {d.left + d.right > 0
-                      ? ` · Gauche ${formatDuration(d.left)} · Droit ${formatDuration(d.right)}`
-                      : ""}
-                    {d.unknown > 0 ? ` · Non précisé ${formatDuration(d.unknown)}` : ""}
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums">
-                    {formatDuration(d.feedingTotal)}
-                  </span>
-                </div>
-              )}
+            return (
+              <div key={d.key} className="rounded-2xl bg-surface border border-border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setExpandedKey(expanded ? null : d.key)}
+                  className="w-full text-left p-4 text-text active:bg-bg transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[15px] font-medium">{d.label}</span>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      className="text-text-muted transition-transform shrink-0"
+                      style={{ transform: expanded ? "rotate(180deg)" : "none" }}
+                    >
+                      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
 
-              {d.sleepCount > 0 && (
-                <div className="mt-1.5 flex items-center justify-between">
-                  <span className="text-xs text-text-muted">
-                    😴 {d.sleepCount} sommeil{d.sleepCount > 1 ? "s" : ""}
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums">
-                    {formatDuration(d.sleepTotal)}
-                  </span>
-                </div>
-              )}
+                  {d.feedingCount > 0 && (
+                    <div className="mt-2.5 flex items-center justify-between">
+                      <span className="text-xs text-text-muted">
+                        🍼 {d.feedingCount} tétée{d.feedingCount > 1 ? "s" : ""}
+                        {d.left + d.right > 0
+                          ? ` · Gauche ${formatDuration(d.left)} · Droit ${formatDuration(d.right)}`
+                          : ""}
+                        {d.unknown > 0 ? ` · Non précisé ${formatDuration(d.unknown)}` : ""}
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums">
+                        {formatDuration(d.feedingTotal)}
+                      </span>
+                    </div>
+                  )}
 
-              {d.diaperCount > 0 && (
-                <div className="mt-1.5 flex items-center justify-between">
-                  <span className="text-xs text-text-muted">
-                    💧 {d.diaperWet} mouillée{d.diaperWet > 1 ? "s" : ""} · 💩 {d.diaperDirty} selle
-                    {d.diaperDirty > 1 ? "s" : ""}
-                  </span>
-                  <span className="text-sm font-semibold tabular-nums">{d.diaperCount}</span>
-                </div>
-              )}
-            </div>
-          ))}
+                  {d.sleepCount > 0 && (
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <span className="text-xs text-text-muted">
+                        😴 {d.sleepCount} sommeil{d.sleepCount > 1 ? "s" : ""}
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums">
+                        {formatDuration(d.sleepTotal)}
+                      </span>
+                    </div>
+                  )}
+
+                  {d.diaperCount > 0 && (
+                    <div className="mt-1.5 flex items-center justify-between">
+                      <span className="text-xs text-text-muted">
+                        💧 {d.diaperWet} mouillée{d.diaperWet > 1 ? "s" : ""} · 💩 {d.diaperDirty} selle
+                        {d.diaperDirty > 1 ? "s" : ""}
+                      </span>
+                      <span className="text-sm font-semibold tabular-nums">{d.diaperCount}</span>
+                    </div>
+                  )}
+                </button>
+
+                {expanded && (
+                  <div className="border-t border-border px-4 pb-4">
+                    {daySessions.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+                          Tétées
+                        </p>
+                        {daySessions.map((s) => (
+                          <SessionRow key={s.id} session={s} groupNumber={numberBySessionId.get(s.id)} />
+                        ))}
+                      </div>
+                    )}
+                    {daySleep.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+                          Sommeil
+                        </p>
+                        {daySleep.map((s) => (
+                          <SleepSessionRow key={s.id} session={s} />
+                        ))}
+                      </div>
+                    )}
+                    {dayDiapers.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+                          Couches
+                        </p>
+                        {dayDiapers.map((e) => (
+                          <DiaperEventRow key={e.id} event={e} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
