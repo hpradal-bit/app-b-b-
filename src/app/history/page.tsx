@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
+import { groupFeedingSessions } from "@/lib/feedingGrouping";
 import { importSeedFeedingHistory } from "@/lib/repo";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
@@ -74,10 +75,22 @@ export default function HistoryPage() {
     for (const s of sessions) {
       const entry = get(s.startTime);
       entry.feedingTotal += s.durationSeconds;
-      entry.feedingCount += 1;
       if (s.breast === "left") entry.left += s.durationSeconds;
       else if (s.breast === "right") entry.right += s.durationSeconds;
       else entry.unknown += s.durationSeconds;
+    }
+    // "Tétées" counted as grouped feeds (sessions <=30min apart count as one),
+    // not raw chronometer sessions — grouping only makes sense within a day.
+    const sessionsByDay = new Map<string, typeof sessions>();
+    for (const s of sessions) {
+      const key = dateKey(s.startTime);
+      const arr = sessionsByDay.get(key) ?? [];
+      arr.push(s);
+      sessionsByDay.set(key, arr);
+    }
+    for (const daySessions of sessionsByDay.values()) {
+      const entry = get(daySessions[0].startTime);
+      entry.feedingCount = groupFeedingSessions(daySessions).groups.length;
     }
     for (const s of sleepSessions) {
       const entry = get(s.startTime);

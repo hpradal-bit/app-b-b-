@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { computeAge } from "@/lib/age";
 import { formatDuration, formatTime, isToday } from "@/lib/format";
+import { activeGroupNumber, groupFeedingSessions } from "@/lib/feedingGrouping";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
 import { useDiaper } from "@/lib/useDiaper";
@@ -35,7 +36,9 @@ export default function DashboardPage() {
     const todaySessions = sessions.filter((s) => isToday(s.startTime));
     let total = todaySessions.reduce((sum, s) => sum + s.durationSeconds, 0);
     if (active) total += elapsedSeconds(active.breast);
-    return { count: todaySessions.length + (active ? 1 : 0), total };
+    const { groups } = groupFeedingSessions(todaySessions);
+    const count = active ? Math.max(groups.length, activeGroupNumber(groups, active.startTime)) : groups.length;
+    return { count, total };
   }, [sessions, active, elapsedSeconds]);
 
   const todaySleepTotal = useMemo(() => {

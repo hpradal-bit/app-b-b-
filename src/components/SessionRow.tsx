@@ -23,7 +23,13 @@ function withInputTime(iso: string, hhmm: string): string {
   return d.toISOString();
 }
 
-export default function SessionRow({ session }: { session: FeedingSession }) {
+export default function SessionRow({
+  session,
+  groupNumber,
+}: {
+  session: FeedingSession;
+  groupNumber?: number;
+}) {
   const [editing, setEditing] = useState(false);
   const [start, setStart] = useState(toInputTime(session.startTime));
   const [end, setEnd] = useState(toInputTime(session.endTime));
@@ -93,6 +99,11 @@ export default function SessionRow({ session }: { session: FeedingSession }) {
 
   return (
     <div className="flex items-center gap-3 py-3 border-b border-border last:border-0">
+      {groupNumber !== undefined && (
+        <span className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-semibold tabular-nums text-text-muted bg-bg shrink-0">
+          {groupNumber}
+        </span>
+      )}
       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium">

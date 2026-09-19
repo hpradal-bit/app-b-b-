@@ -6,6 +6,7 @@ import SessionRow from "@/components/SessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
 import { formatDuration } from "@/lib/format";
 import { isToday } from "@/lib/format";
+import { activeGroupNumber, groupFeedingSessions } from "@/lib/feedingGrouping";
 import { useFeeding } from "@/lib/useFeeding";
 
 export default function FeedingPage() {
@@ -29,8 +30,16 @@ export default function FeedingPage() {
     if (active?.breast === "left") left += activeExtra;
     if (active?.breast === "right") right += activeExtra;
     const total = left + right + unknown;
-    return { left, right, unknown, total, count: todaySessions.length + (active ? 1 : 0) };
+    return { left, right, unknown, total };
   }, [todaySessions, active, elapsedSeconds]);
+
+  const { groups, numberBySessionId } = useMemo(
+    () => groupFeedingSessions(todaySessions),
+    [todaySessions]
+  );
+  const tetteeCount = active
+    ? Math.max(groups.length, activeGroupNumber(groups, active.startTime))
+    : groups.length;
 
   const sideTotal = totals.left + totals.right;
   const leftPct = sideTotal > 0 ? Math.round((totals.left / sideTotal) * 100) : 0;
@@ -89,7 +98,7 @@ export default function FeedingPage() {
       <div className="mt-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[15px] font-semibold">Sessions du jour</h2>
-          <span className="text-xs text-text-muted">{totals.count}</span>
+          <span className="text-xs text-text-muted">{tetteeCount}</span>
         </div>
         {todaySessions.length === 0 ? (
           <p className="text-sm text-text-muted py-6 text-center">
@@ -98,7 +107,7 @@ export default function FeedingPage() {
         ) : (
           <div className="rounded-2xl bg-surface border border-border px-4">
             {todaySessions.map((s) => (
-              <SessionRow key={s.id} session={s} />
+              <SessionRow key={s.id} session={s} groupNumber={numberBySessionId.get(s.id)} />
             ))}
           </div>
         )}
