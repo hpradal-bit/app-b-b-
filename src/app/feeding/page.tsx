@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import AddFeedingEntry from "@/components/AddFeedingEntry";
 import FeedingButton from "@/components/FeedingButton";
-import SessionRow from "@/components/SessionRow";
+import FeedingGroupBlock from "@/components/FeedingGroupBlock";
 import ThemeToggle from "@/components/ThemeToggle";
 import { formatDuration } from "@/lib/format";
 import { isToday } from "@/lib/format";
@@ -35,10 +35,8 @@ export default function FeedingPage() {
     return { left, right, unknown, total };
   }, [todaySessions, active, elapsedSeconds]);
 
-  const { groups, numberBySessionId } = useMemo(
-    () => groupFeedingSessions(todaySessions),
-    [todaySessions]
-  );
+  const { groups } = useMemo(() => groupFeedingSessions(todaySessions), [todaySessions]);
+  const groupsDesc = useMemo(() => [...groups].reverse(), [groups]);
   const tetteeCount = active
     ? Math.max(groups.length, activeGroupNumber(groups, active.startTime))
     : groups.length;
@@ -123,8 +121,8 @@ export default function FeedingPage() {
           </p>
         ) : (
           <div className="rounded-2xl bg-surface border border-border px-4">
-            {todaySessions.map((s) => (
-              <SessionRow key={s.id} session={s} groupNumber={numberBySessionId.get(s.id)} />
+            {groupsDesc.map((g) => (
+              <FeedingGroupBlock key={g.number} group={g} sessions={todaySessions} />
             ))}
           </div>
         )}

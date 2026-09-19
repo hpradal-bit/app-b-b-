@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import DiaperEventRow from "@/components/DiaperEventRow";
+import FeedingGroupBlock from "@/components/FeedingGroupBlock";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
-import SessionRow from "@/components/SessionRow";
 import SleepSessionRow from "@/components/SleepSessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
@@ -213,7 +213,7 @@ export default function HistoryPage() {
             const daySessions = sessions
               .filter((s) => dateKey(s.startTime) === d.key)
               .sort((a, b) => a.startTime.localeCompare(b.startTime));
-            const { numberBySessionId } = groupFeedingSessions(daySessions);
+            const { groups: dayGroups } = groupFeedingSessions(daySessions);
             const daySleep = sleepSessions
               .filter((s) => dateKey(s.startTime) === d.key)
               .sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -286,8 +286,8 @@ export default function HistoryPage() {
                         <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
                           Tétées
                         </p>
-                        {daySessions.map((s) => (
-                          <SessionRow key={s.id} session={s} groupNumber={numberBySessionId.get(s.id)} />
+                        {dayGroups.map((g) => (
+                          <FeedingGroupBlock key={g.number} group={g} sessions={daySessions} />
                         ))}
                       </div>
                     )}
