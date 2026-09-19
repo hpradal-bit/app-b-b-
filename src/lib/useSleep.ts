@@ -44,9 +44,13 @@ export function useSleep() {
     return Math.max(0, Math.floor((Date.now() - new Date(active.startTime).getTime()) / 1000));
   };
 
+  const lastWakeTime = (): string | null => {
+    if (active || !baby) return null;
+    return getLastWakeTime(baby.id);
+  };
+
   const minutesAwake = (): number => {
-    if (active || !baby) return 0;
-    const lastWake = getLastWakeTime(baby.id);
+    const lastWake = lastWakeTime();
     if (!lastWake) return 0;
     return Math.max(0, Math.floor((Date.now() - new Date(lastWake).getTime()) / 60000));
   };
@@ -58,5 +62,5 @@ export function useSleep() {
     refresh();
   };
 
-  return { baby, active, sessions, elapsedSeconds, minutesAwake, toggle };
+  return { baby, active, sessions, elapsedSeconds, minutesAwake, lastWakeTime, toggle };
 }

@@ -51,7 +51,20 @@ export const CHECK_ITEMS: CheckItem[] = [
 export interface CauseHint {
   label: string;
   reason: string;
+  suggestion: string;
 }
+
+const SUGGESTIONS: Record<string, string> = {
+  Faim: "Propose une tétée, même courte — c'est souvent la première chose à essayer.",
+  Couche: "Vérifie la couche et change-la si besoin.",
+  Fatigue: "Installe-le au calme, lumière tamisée, bercement doux, en évitant de le sur-stimuler.",
+  "Inconfort digestif":
+    "Essaie un portage vertical avec un léger massage du ventre, ou le mouvement du vélo avec les jambes.",
+  "Inconfort thermique": "Vérifie sa nuque (ni moite ni froide) et ajuste une couche de vêtement.",
+  "Besoin de proximité": "Porte-le contre toi, en peau à peau si possible — le contact rassure.",
+  "Rot / air avalé": "Essaie de le faire roter en position verticale, avec de petites tapes dans le dos.",
+  Surstimulation: "Éloigne-le des bruits et lumières — un environnement calme peut suffire à l'apaiser.",
+};
 
 interface CauseContext {
   minutesSinceLastFeeding: number | null;
@@ -60,7 +73,7 @@ interface CauseContext {
   checkedIds: string[];
 }
 
-const CHECK_TO_CAUSE: Record<string, CauseHint> = {
+const CHECK_TO_CAUSE: Record<string, Omit<CauseHint, "suggestion">> = {
   rooting: { label: "Faim", reason: "il cherche activement à téter" },
   wriggling: {
     label: "Inconfort digestif",
@@ -78,7 +91,7 @@ const CHECK_TO_CAUSE: Record<string, CauseHint> = {
  * asserts a single cause — always plural, always "possible".
  */
 export function buildCauseHints(ctx: CauseContext): CauseHint[] {
-  const hints: CauseHint[] = [];
+  const hints: Omit<CauseHint, "suggestion">[] = [];
 
   if (ctx.minutesSinceLastFeeding !== null && ctx.minutesSinceLastFeeding >= 120) {
     hints.push({
@@ -107,5 +120,5 @@ export function buildCauseHints(ctx: CauseContext): CauseHint[] {
     if (hint && !hints.some((h) => h.label === hint.label)) hints.push(hint);
   }
 
-  return hints;
+  return hints.map((h) => ({ ...h, suggestion: SUGGESTIONS[h.label] ?? "" }));
 }

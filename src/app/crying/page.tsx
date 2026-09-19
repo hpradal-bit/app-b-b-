@@ -133,18 +133,21 @@ export default function CryingPage() {
 
       <section className="mb-5">
         <h2 className="text-[13px] font-semibold text-text-muted uppercase tracking-wide mb-2">
-          Causes possibles
+          Ce qui peut aider
         </h2>
         {hints.length === 0 ? (
           <p className="text-sm text-text-muted px-1">
-            Coche ce que tu observes ci-dessus pour affiner les pistes.
+            Coche ce que tu observes ci-dessus pour obtenir des pistes concrètes.
           </p>
         ) : (
-          <div className="rounded-2xl bg-surface border border-border p-4 flex flex-col gap-2.5">
+          <div className="rounded-2xl bg-surface border border-border p-4 flex flex-col gap-4">
             {hints.map((h) => (
-              <div key={h.label} className="text-sm">
-                <span className="font-medium">{h.label}</span>
-                <span className="text-text-muted"> — {h.reason}</span>
+              <div key={h.label}>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-semibold text-accent">{h.label}</span>
+                  <span className="text-[11px] text-text-muted">— {h.reason}</span>
+                </div>
+                <p className="text-sm mt-0.5">{h.suggestion}</p>
               </div>
             ))}
           </div>
@@ -155,13 +158,11 @@ export default function CryingPage() {
         </p>
       </section>
 
-      <button
-        type="button"
-        onClick={finish}
-        className="w-full rounded-2xl bg-accent text-white font-medium py-3.5 active:scale-[0.98] transition-transform"
-      >
-        {logged ? "Enregistré ✓" : "Terminer et noter dans le journal"}
-      </button>
+      {hints.length > 0 && (
+        <button type="button" onClick={finish} className="text-xs text-text-muted underline underline-offset-2">
+          {logged ? "Épisode enregistré ✓" : "Garder une trace de cet épisode dans l'historique"}
+        </button>
+      )}
     </div>
   );
 }
