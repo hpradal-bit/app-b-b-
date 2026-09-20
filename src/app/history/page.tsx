@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import DiaperEventRow from "@/components/DiaperEventRow";
-import FeedingGroupBlock from "@/components/FeedingGroupBlock";
+import FeedingGroupList from "@/components/FeedingGroupList";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
 import SleepSessionRow from "@/components/SleepSessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -286,9 +286,7 @@ export default function HistoryPage() {
                         <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
                           Tétées
                         </p>
-                        {dayGroups.map((g) => (
-                          <FeedingGroupBlock key={g.number} group={g} sessions={daySessions} />
-                        ))}
+                        <FeedingGroupList groups={dayGroups} sessions={daySessions} />
                       </div>
                     )}
                     {daySleep.length > 0 && (

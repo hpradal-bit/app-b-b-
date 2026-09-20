@@ -39,3 +39,16 @@ export function dateKey(iso: string): string {
 export function isToday(iso: string): boolean {
   return dateKey(iso) === dateKey(new Date().toISOString());
 }
+
+function isYesterday(iso: string): boolean {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  return dateKey(iso) === dateKey(yesterday.toISOString());
+}
+
+/** "Aujourd'hui" / "Hier" / "samedi 19 septembre" — for day-list headings. */
+export function relativeDayLabel(iso: string): string {
+  if (isToday(iso)) return "Aujourd'hui";
+  if (isYesterday(iso)) return "Hier";
+  return formatDayLabel(iso);
+}

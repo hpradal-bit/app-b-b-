@@ -7,6 +7,7 @@ const items = [
   { href: "/", label: "Aujourd'hui", icon: "home" },
   { href: "/feeding", label: "Tétées", icon: "bottle" },
   { href: "/sleep", label: "Sommeil", icon: "moon" },
+  { href: "/fil", label: "Fil", icon: "feed" },
   { href: "/history", label: "Historique", icon: "history" },
 ] as const;
 
@@ -38,6 +39,16 @@ function Icon({ name }: { name: (typeof items)[number]["icon"] }) {
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
+      </svg>
+    );
+  }
+  if (name === "feed") {
+    return (
+      <svg {...common}>
+        <circle cx="6" cy="6" r="1.6" fill="currentColor" />
+        <circle cx="6" cy="12" r="1.6" fill="currentColor" />
+        <circle cx="6" cy="18" r="1.6" fill="currentColor" />
+        <path d="M10 6h8M10 12h8M10 18h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     );
   }

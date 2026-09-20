@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react";
 import AddFeedingEntry from "@/components/AddFeedingEntry";
 import FeedingButton from "@/components/FeedingButton";
-import FeedingGroupBlock from "@/components/FeedingGroupBlock";
+import FeedingGroupList from "@/components/FeedingGroupList";
+import PastDaysAccordion, { type PastDayEntry } from "@/components/PastDaysAccordion";
 import ThemeToggle from "@/components/ThemeToggle";
-import { formatDuration } from "@/lib/format";
-import { isToday } from "@/lib/format";
+import { dateKey, formatDuration, isToday, relativeDayLabel } from "@/lib/format";
 import { activeGroupNumber, groupFeedingSessions } from "@/lib/feedingGrouping";
 import { useFeeding } from "@/lib/useFeeding";
 
@@ -36,7 +36,6 @@ export default function FeedingPage() {
   }, [todaySessions, active, elapsedSeconds]);
 
   const { groups } = useMemo(() => groupFeedingSessions(todaySessions), [todaySessions]);
-  const groupsDesc = useMemo(() => [...groups].reverse(), [groups]);
   const tetteeCount = active
     ? Math.max(groups.length, activeGroupNumber(groups, active.startTime))
     : groups.length;
@@ -44,6 +43,34 @@ export default function FeedingPage() {
   const sideTotal = totals.left + totals.right;
   const leftPct = sideTotal > 0 ? Math.round((totals.left / sideTotal) * 100) : 0;
   const rightPct = sideTotal > 0 ? 100 - leftPct : 0;
+
+  const pastDays: PastDayEntry[] = useMemo(() => {
+    const byDay = new Map<string, typeof sessions>();
+    for (const s of sessions) {
+      if (isToday(s.startTime)) continue;
+      const key = dateKey(s.startTime);
+      const arr = byDay.get(key) ?? [];
+      arr.push(s);
+      byDay.set(key, arr);
+    }
+    return Array.from(byDay.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([key, daySessions]) => {
+        const sorted = [...daySessions].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        const { groups: dayGroups } = groupFeedingSessions(sorted);
+        const total = sorted.reduce((sum, s) => sum + s.durationSeconds, 0);
+        return {
+          key,
+          label: relativeDayLabel(sorted[0].startTime),
+          summary: (
+            <span className="text-xs text-text-muted">
+              {dayGroups.length} tétée{dayGroups.length > 1 ? "s" : ""} · {formatDuration(total)}
+            </span>
+          ),
+          detail: <FeedingGroupList groups={dayGroups} sessions={sorted} />,
+        };
+      });
+  }, [sessions]);
 
   if (!baby) return null;
 
@@ -121,12 +148,17 @@ export default function FeedingPage() {
           </p>
         ) : (
           <div className="rounded-2xl bg-surface border border-border px-4">
-            {groupsDesc.map((g) => (
-              <FeedingGroupBlock key={g.number} group={g} sessions={todaySessions} />
-            ))}
+            <FeedingGroupList groups={groups} sessions={todaySessions} />
           </div>
         )}
       </div>
+
+      {pastDays.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-[15px] font-semibold mb-2">Jours précédents</h2>
+          <PastDaysAccordion days={pastDays} />
+        </div>
+      )}
     </div>
   );
 }

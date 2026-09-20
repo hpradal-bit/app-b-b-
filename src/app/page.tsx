@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { computeAge } from "@/lib/age";
-import { formatDuration, formatTime, isToday } from "@/lib/format";
+import { formatDuration, isToday } from "@/lib/format";
 import { activeGroupNumber, groupFeedingSessions } from "@/lib/feedingGrouping";
+import { formatAgoMinutes, minutesSince } from "@/lib/relativeTime";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
 import { useDiaper } from "@/lib/useDiaper";
@@ -49,6 +50,15 @@ export default function DashboardPage() {
   }, [sleepSessions, sleepActive, sleepElapsedSeconds]);
 
   const lastSession = sessions.slice().sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
+
+  // Ticks so "il y a X" keeps advancing on its own, even with no active
+  // timer running (useFeeding's own tick only runs while a tétée is live).
+  const [, forceTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => forceTick((t) => t + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const lastFeedingAgo = lastSession ? formatAgoMinutes(minutesSince(lastSession.endTime)) : null;
 
   if (!baby || !age) return null;
 
@@ -125,9 +135,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {lastSession && (
+      {!active && lastFeedingAgo && (
         <p className="mt-4 text-xs text-text-muted text-center">
-          Dernière tétée terminée à {formatTime(lastSession.endTime)}
+          Dernière tétée, il y a {lastFeedingAgo}
         </p>
       )}
 
