@@ -309,7 +309,7 @@ export function addDiaperEvent(babyId: string, kind: DiaperKind, time: string): 
 
 export function updateDiaperEvent(
   id: string,
-  patch: Partial<Pick<DiaperEvent, "kind" | "time">>
+  patch: Partial<Pick<DiaperEvent, "kind" | "time" | "comment">>
 ): void {
   const all = readJSON<DiaperEvent[]>(KEYS.diaperEvents, []);
   const idx = all.findIndex((e) => e.id === id);

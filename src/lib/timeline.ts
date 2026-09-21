@@ -94,7 +94,7 @@ export function buildTimelineByDay(
       time: e.time,
       kind: "diaper",
       icon: "🧷",
-      title: DIAPER_LABEL[e.kind],
+      title: e.comment ? `${DIAPER_LABEL[e.kind]} — ${e.comment}` : DIAPER_LABEL[e.kind],
     });
   }
 

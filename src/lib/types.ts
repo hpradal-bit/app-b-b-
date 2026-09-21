@@ -46,6 +46,7 @@ export interface DiaperEvent {
   babyId: string;
   kind: DiaperKind;
   time: string; // ISO datetime
+  comment?: string; // free text, e.g. "gros caca", "petit caca"
   createdAt: string;
   updatedAt: string;
 }

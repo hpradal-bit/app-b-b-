@@ -29,14 +29,21 @@ function withInputTime(iso: string, hhmm: string): string {
   return d.toISOString();
 }
 
+const COMMENT_PRESETS = ["Petite quantité", "Quantité normale", "Grosse quantité", "Couleur inhabituelle"];
+
 export default function DiaperEventRow({ event }: { event: DiaperEvent }) {
   const [editing, setEditing] = useState(false);
   const [time, setTime] = useState(toInputTime(event.time));
   const [kind, setKind] = useState<DiaperKind>(event.kind);
+  const [comment, setComment] = useState(event.comment ?? "");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   const save = () => {
-    updateDiaperEvent(event.id, { time: withInputTime(event.time, time), kind });
+    updateDiaperEvent(event.id, {
+      time: withInputTime(event.time, time),
+      kind,
+      comment: comment.trim() || undefined,
+    });
     setEditing(false);
   };
 
@@ -65,6 +72,29 @@ export default function DiaperEventRow({ event }: { event: DiaperEvent }) {
             className="mt-1 w-full rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text"
           />
         </label>
+        <div>
+          <span className="text-xs text-text-muted">Commentaire</span>
+          <div className="flex flex-wrap gap-1.5 mt-1 mb-1.5">
+            {COMMENT_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                onClick={() => setComment(preset)}
+                className={`text-[11px] px-2.5 py-1 rounded-full border ${
+                  comment === preset ? "bg-accent text-white border-accent" : "border-border text-text-muted"
+                }`}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Ex. gros caca, petit caca…"
+            className="w-full rounded-lg border border-border bg-bg px-2 py-1.5 text-sm text-text"
+          />
+        </div>
         <div className="flex gap-2 justify-end">
           <button onClick={() => setEditing(false)} className="text-sm px-3 py-1.5 rounded-lg text-text-muted">
             Annuler
@@ -82,7 +112,10 @@ export default function DiaperEventRow({ event }: { event: DiaperEvent }) {
       <span className="text-lg shrink-0">{KIND_EMOJI[event.kind]}</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium">{formatTime(event.time)}</div>
-        <div className="text-xs text-text-muted">{KIND_LABEL[event.kind]}</div>
+        <div className="text-xs text-text-muted">
+          {KIND_LABEL[event.kind]}
+          {event.comment ? <span className="italic"> · {event.comment}</span> : ""}
+        </div>
       </div>
       {confirmDelete ? (
         <div className="flex items-center gap-2">

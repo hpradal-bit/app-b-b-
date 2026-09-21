@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import LastFeedingBanner from "@/components/LastFeedingBanner";
 import ThemeToggle from "@/components/ThemeToggle";
 import { computeAge } from "@/lib/age";
 import { formatDuration, isToday } from "@/lib/format";
 import { activeGroupNumber, groupFeedingSessions } from "@/lib/feedingGrouping";
-import { formatAgoMinutes, minutesSince } from "@/lib/relativeTime";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
 import { useDiaper } from "@/lib/useDiaper";
@@ -49,16 +49,7 @@ export default function DashboardPage() {
     return sleepActive ? base + sleepElapsedSeconds() : base;
   }, [sleepSessions, sleepActive, sleepElapsedSeconds]);
 
-  const lastSession = sessions.slice().sort((a, b) => b.endTime.localeCompare(a.endTime))[0];
-
-  // Ticks so "il y a X" keeps advancing on its own, even with no active
-  // timer running (useFeeding's own tick only runs while a tétée is live).
-  const [, forceTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => forceTick((t) => t + 1), 30_000);
-    return () => clearInterval(id);
-  }, []);
-  const lastFeedingAgo = lastSession ? formatAgoMinutes(minutesSince(lastSession.endTime)) : null;
+  const lastSession = sessions.slice().sort((a, b) => b.endTime.localeCompare(a.endTime))[0] ?? null;
 
   if (!baby || !age) return null;
 
@@ -111,6 +102,12 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {!active && !sleepActive && lastSession && (
+        <div className="mt-5">
+          <LastFeedingBanner lastSession={lastSession} />
+        </div>
+      )}
+
       <div className="mt-5 grid grid-cols-3 gap-3">
         <div className="rounded-2xl bg-surface border border-border p-3.5 flex flex-col gap-1">
           <span className="text-lg">🍼</span>
@@ -134,12 +131,6 @@ export default function DashboardPage() {
           <span className="text-[11px] text-text-muted leading-tight">Couches</span>
         </div>
       </div>
-
-      {!active && lastFeedingAgo && (
-        <p className="mt-4 text-xs text-text-muted text-center">
-          Dernière tétée, il y a {lastFeedingAgo}
-        </p>
-      )}
 
       <div className="mt-6">
         <h2 className="text-[15px] font-semibold mb-3">Actions rapides</h2>

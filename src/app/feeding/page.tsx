@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import AddFeedingEntry from "@/components/AddFeedingEntry";
 import FeedingButton from "@/components/FeedingButton";
 import FeedingGroupList from "@/components/FeedingGroupList";
+import LastFeedingBanner from "@/components/LastFeedingBanner";
 import PastDaysAccordion, { type PastDayEntry } from "@/components/PastDaysAccordion";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDuration, isToday, relativeDayLabel } from "@/lib/format";
@@ -97,6 +98,16 @@ export default function FeedingPage() {
           onTap={() => tap("right")}
         />
       </div>
+
+      {!active && (
+        <div className="mt-5">
+          <LastFeedingBanner
+            lastSession={
+              sessions.slice().sort((a, b) => b.endTime.localeCompare(a.endTime))[0] ?? null
+            }
+          />
+        </div>
+      )}
 
       <div className="mt-5 rounded-2xl bg-surface border border-border p-4">
         <div className="flex items-center justify-between">
