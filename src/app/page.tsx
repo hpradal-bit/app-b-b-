@@ -163,6 +163,13 @@ export default function DashboardPage() {
             <span className="text-xl">😢</span>
             <span className="text-sm font-medium">Pleurs</span>
           </Link>
+          <Link
+            href="/milk"
+            className="rounded-2xl bg-surface border border-border p-4 flex items-center gap-3 active:scale-[0.98] transition-transform"
+          >
+            <span className="text-xl">🍼</span>
+            <span className="text-sm font-medium">Lait tiré</span>
+          </Link>
         </div>
       </div>
     </div>

@@ -20,6 +20,14 @@ import type { Breast, FeedingSession } from "./types";
  *   retombent pas exactement sur la somme des lignes (à quelques minutes
  *   près) : c'est le carnet d'origine, pas une erreur d'import — chaque
  *   session reste éditable dans l'app.
+ * - Trois créneaux notés en toute fin d'une journée (ex. "00:07-00:25"
+ *   listé après la tétée de 19h13) sont en réalité le début de la nuit
+ *   suivante : ils sont rattachés au jour calendaire suivant plutôt qu'au
+ *   jour sous lequel ils étaient notés, pour rester cohérent avec la
+ *   convention "un jour = ses tétées entre 00:00 et 23:59" utilisée
+ *   partout ailleurs dans l'app.
+ * - Les changes de couches mentionnés en commentaire (pipi/caca) à partir
+ *   du 19 septembre sont importés séparément, voir seedDiaperHistory.ts.
  */
 
 type Entry = [hour: number, minute: number, durationMinutes: number, breast: Breast];
@@ -185,6 +193,79 @@ const DAYS: Record<string, Entry[]> = {
     [12, 57, 27, "left"],
     [14, 32, 6, "right"],
     [14, 39, 11, "left"],
+    [19, 43, 28, "left"],
+    [21, 45, 25, "right"],
+    [23, 52, 9, "left"],
+  ],
+  "2026-09-20": [
+    [2, 56, 19, "right"],
+    [6, 45, 18, "left"],
+    [9, 12, 36, "right"],
+    [12, 35, 17, "left"],
+    [14, 24, 26, "right"],
+    [17, 41, 22, "left"],
+    [21, 26, 38, "right"],
+    [23, 8, 20, "left"],
+  ],
+  "2026-09-21": [
+    [1, 4, 23, "right"],
+    [5, 7, 19, "left"],
+    [8, 38, 20, "right"],
+    [12, 48, 22, "left"],
+    [15, 6, 11, "right"],
+    [16, 34, 18, "left"],
+    [19, 47, 26, "right"],
+    [22, 1, 31, "left"],
+  ],
+  "2026-09-22": [
+    [1, 52, 31, "right"],
+    [5, 38, 20, "left"],
+    [6, 14, 6, "unknown"],
+    [10, 32, 18, "right"],
+    [12, 58, 16, "left"],
+    [15, 28, 17, "right"],
+    [16, 10, 6, "left"],
+    [18, 25, 13, "right"],
+    [22, 3, 22, "left"],
+  ],
+  "2026-09-23": [
+    [3, 4, 19, "right"],
+    [7, 11, 15, "left"],
+    [9, 50, 27, "right"],
+    [11, 51, 18, "right"],
+    [12, 15, 11, "right"],
+    [14, 6, 24, "unknown"],
+    [19, 2, 36, "right"],
+    [22, 11, 32, "left"],
+    [23, 45, 12, "right"],
+  ],
+  "2026-09-24": [
+    [3, 29, 16, "left"],
+    [6, 21, 12, "right"],
+    [7, 13, 12, "left"],
+    [10, 48, 44, "left"],
+    [14, 52, 28, "right"],
+    [19, 13, 32, "left"],
+  ],
+  "2026-09-25": [
+    [0, 7, 17, "right"],
+    [4, 18, 14, "left"],
+    [5, 5, 15, "right"],
+    [10, 31, 16, "left"],
+    [12, 52, 18, "right"],
+    [13, 17, 16, "right"],
+    [16, 15, 30, "left"],
+    [20, 48, 32, "right"],
+  ],
+  "2026-09-26": [
+    [0, 30, 10, "left"],
+    [1, 0, 20, "left"],
+    [3, 45, 25, "right"],
+    [5, 45, 15, "left"],
+    [9, 22, 16, "right"],
+    [9, 43, 7, "right"],
+    [13, 14, 16, "left"],
+    [16, 59, 21, "right"],
   ],
 };
 

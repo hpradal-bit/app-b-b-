@@ -51,6 +51,17 @@ export interface DiaperEvent {
   updatedAt: string;
 }
 
+export interface MilkEntry {
+  id: string;
+  babyId: string;
+  pumpedAt: string; // ISO datetime — when the milk was expressed
+  fridgedAt?: string; // ISO datetime — when it was put in the fridge, if any
+  quantityMl?: number;
+  comment?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CryingEvent {
   id: string;
   babyId: string;

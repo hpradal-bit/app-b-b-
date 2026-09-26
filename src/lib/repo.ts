@@ -1,4 +1,5 @@
 import { readJSON, writeJSON } from "./storage";
+import { buildSeedDiaperEvents } from "./seedDiaperHistory";
 import { buildSeedFeedingSessions } from "./seedFeedingHistory";
 import type {
   ActiveFeeding,
@@ -9,6 +10,7 @@ import type {
   DiaperEvent,
   DiaperKind,
   FeedingSession,
+  MilkEntry,
   SleepSession,
 } from "./types";
 
@@ -55,9 +57,10 @@ export function getActiveBaby(): Baby {
   const babies = getBabies();
   if (babies.length > 0) return babies[0];
   writeJSON(KEYS.babies, [DEFAULT_BABY]);
-  // First-ever launch on this device: pre-load the real feeding history kept
-  // on paper since birth, so the app isn't empty on day one.
+  // First-ever launch on this device: pre-load the real feeding/diaper
+  // history kept on paper since birth, so the app isn't empty on day one.
   writeJSON(KEYS.feedingSessions, buildSeedFeedingSessions(DEFAULT_BABY.id));
+  writeJSON(KEYS.diaperEvents, buildSeedDiaperEvents(DEFAULT_BABY.id));
   return DEFAULT_BABY;
 }
 
@@ -80,6 +83,18 @@ export function importSeedFeedingHistory(babyId: string): number {
   const toAdd = seed.filter((s) => !existingIds.has(s.id));
   if (toAdd.length === 0) return 0;
   writeJSON(KEYS.feedingSessions, [...all, ...toAdd]);
+  notify();
+  return toAdd.length;
+}
+
+/** Same idea as importSeedFeedingHistory, for the diaper changes noted in the carnet. */
+export function importSeedDiaperHistory(babyId: string): number {
+  const seed = buildSeedDiaperEvents(babyId);
+  const all = readJSON<DiaperEvent[]>(KEYS.diaperEvents, []);
+  const existingIds = new Set(all.map((e) => e.id));
+  const toAdd = seed.filter((e) => !existingIds.has(e.id));
+  if (toAdd.length === 0) return 0;
+  writeJSON(KEYS.diaperEvents, [...all, ...toAdd]);
   notify();
   return toAdd.length;
 }
@@ -347,6 +362,60 @@ export function addCryingEvent(babyId: string, causes: string[]): CryingEvent {
   writeJSON(KEYS.cryingEvents, all);
   notify();
   return event;
+}
+
+// ---------- Milk (pumped breast milk storage) ----------
+
+const MILK_KEY = "bb:milk_entries";
+
+export function getMilkEntries(babyId: string): MilkEntry[] {
+  return readJSON<MilkEntry[]>(MILK_KEY, []).filter((e) => e.babyId === babyId);
+}
+
+function saveAllMilkEntries(entries: MilkEntry[]) {
+  writeJSON(MILK_KEY, entries);
+  notify();
+}
+
+export function addMilkEntry(
+  babyId: string,
+  pumpedAt: string,
+  quantityMl?: number,
+  comment?: string
+): MilkEntry {
+  const entry: MilkEntry = {
+    id: uid(),
+    babyId,
+    pumpedAt,
+    quantityMl,
+    comment,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const all = readJSON<MilkEntry[]>(MILK_KEY, []);
+  all.push(entry);
+  saveAllMilkEntries(all);
+  return entry;
+}
+
+export function updateMilkEntry(
+  id: string,
+  patch: Partial<Pick<MilkEntry, "pumpedAt" | "fridgedAt" | "quantityMl" | "comment">>
+): void {
+  const all = readJSON<MilkEntry[]>(MILK_KEY, []);
+  const idx = all.findIndex((e) => e.id === id);
+  if (idx === -1) return;
+  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
+  saveAllMilkEntries(all);
+}
+
+export function markMilkFridged(id: string, fridgedAt: string = new Date().toISOString()): void {
+  updateMilkEntry(id, { fridgedAt });
+}
+
+export function deleteMilkEntry(id: string): void {
+  const all = readJSON<MilkEntry[]>(MILK_KEY, []);
+  saveAllMilkEntries(all.filter((e) => e.id !== id));
 }
 
 // ---------- Cross-module context (used by the crying guide) ----------

@@ -8,7 +8,7 @@ import SleepSessionRow from "@/components/SleepSessionRow";
 import ThemeToggle from "@/components/ThemeToggle";
 import { dateKey, formatDayLabel, formatDuration } from "@/lib/format";
 import { groupFeedingSessions } from "@/lib/feedingGrouping";
-import { importSeedFeedingHistory } from "@/lib/repo";
+import { importSeedDiaperHistory, importSeedFeedingHistory } from "@/lib/repo";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
 import { useDiaper } from "@/lib/useDiaper";
@@ -44,12 +44,16 @@ export default function HistoryPage() {
 
   const handleImport = () => {
     if (!baby) return;
-    const added = importSeedFeedingHistory(baby.id);
-    setImportMessage(
-      added > 0
-        ? `${added} tétée${added > 1 ? "s" : ""} importée${added > 1 ? "s" : ""} depuis le carnet.`
-        : "Le carnet était déjà entièrement importé."
-    );
+    const addedFeeding = importSeedFeedingHistory(baby.id);
+    const addedDiaper = importSeedDiaperHistory(baby.id);
+    if (addedFeeding === 0 && addedDiaper === 0) {
+      setImportMessage("Le carnet était déjà entièrement importé.");
+      return;
+    }
+    const parts: string[] = [];
+    if (addedFeeding > 0) parts.push(`${addedFeeding} tétée${addedFeeding > 1 ? "s" : ""}`);
+    if (addedDiaper > 0) parts.push(`${addedDiaper} couche${addedDiaper > 1 ? "s" : ""}`);
+    setImportMessage(`${parts.join(" et ")} importée${addedFeeding + addedDiaper > 1 ? "s" : ""} depuis le carnet.`);
   };
 
   const days = useMemo(() => {
@@ -146,8 +150,8 @@ export default function HistoryPage() {
       <div className="mb-5 rounded-2xl bg-surface border border-border p-4">
         <p className="text-sm font-medium">Historique du carnet papier</p>
         <p className="text-xs text-text-muted mt-1">
-          Recharge les tétées notées à la main depuis la naissance de Raphaël (6 au 19
-          septembre) si elles n&apos;apparaissent pas ci-dessous.
+          Recharge les tétées et couches notées à la main depuis la naissance de Raphaël si
+          elles n&apos;apparaissent pas ci-dessous.
         </p>
         <button
           type="button"
