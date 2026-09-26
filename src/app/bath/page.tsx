@@ -1,50 +1,44 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import MilkEntryRow from "@/components/MilkEntryRow";
+import BathEventRow from "@/components/BathEventRow";
 import PastDaysAccordion, { type PastDayEntry } from "@/components/PastDaysAccordion";
 import ThemeToggle from "@/components/ThemeToggle";
 import { groupByDay, isToday } from "@/lib/format";
-import { getMilkStatus } from "@/lib/milk";
-import { useMilk } from "@/lib/useMilk";
+import { useBath } from "@/lib/useBath";
 
-export default function MilkPage() {
-  const { baby, entries, logPumped } = useMilk();
+export default function BathPage() {
+  const { baby, events, log } = useBath();
   const [justLogged, setJustLogged] = useState(false);
 
-  // Still good to use, regardless of which day it was pumped on — a
-  // fridge entry from yesterday can still be well within its 48h window.
-  const activeEntries = useMemo(
-    () =>
-      entries
-        .filter((e) => !getMilkStatus(e).expired)
-        .sort((a, b) => b.pumpedAt.localeCompare(a.pumpedAt)),
-    [entries]
+  const todayEvents = useMemo(
+    () => events.filter((e) => isToday(e.time)).sort((a, b) => b.time.localeCompare(a.time)),
+    [events]
   );
 
   const allDays: PastDayEntry[] = useMemo(() => {
-    return groupByDay(entries, (e) => e.pumpedAt)
-      .filter((d) => !isToday(d.items[0].pumpedAt))
+    return groupByDay(events, (e) => e.time)
+      .filter((d) => !isToday(d.items[0].time))
       .map((d) => ({
         key: d.key,
         label: d.label,
         summary: (
           <span className="text-xs text-text-muted">
-            {d.items.length} tirage{d.items.length > 1 ? "s" : ""}
+            {d.items.length} bain{d.items.length > 1 ? "s" : ""}
           </span>
         ),
         detail: (
           <div>
             {d.items.map((e) => (
-              <MilkEntryRow key={e.id} entry={e} />
+              <BathEventRow key={e.id} event={e} />
             ))}
           </div>
         ),
       }));
-  }, [entries]);
+  }, [events]);
 
   const handleLog = () => {
-    logPumped();
+    log();
     setJustLogged(true);
     setTimeout(() => setJustLogged(false), 1800);
   };
@@ -54,7 +48,7 @@ export default function MilkPage() {
   return (
     <div className="max-w-md mx-auto px-4 pt-6 pb-4">
       <div className="flex items-center justify-between mb-5">
-        <h1 className="text-[22px] font-semibold">Lait tiré</h1>
+        <h1 className="text-[22px] font-semibold">Bain</h1>
         <ThemeToggle />
       </div>
 
@@ -67,30 +61,25 @@ export default function MilkPage() {
           color: justLogged ? "#fff" : "var(--text)",
         }}
       >
-        <span className="text-2xl">🍼</span>
+        <span className="text-2xl">🛁</span>
         <span className="text-[15px] font-medium">
-          {justLogged ? "Enregistré ✓" : "Lait tiré maintenant"}
+          {justLogged ? "Enregistré ✓" : "Bain donné maintenant"}
         </span>
       </button>
 
-      <p className="mt-4 text-[11px] text-text-muted text-center leading-relaxed px-4">
-        Repères usuels : environ 4h à température ambiante, 48h au réfrigérateur une fois
-        mis au frigo. En cas de doute, suis les consignes de ta maternité ou de ton pédiatre.
-      </p>
-
       <div className="mt-6">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[15px] font-semibold">En réserve</h2>
-          <span className="text-xs text-text-muted">{activeEntries.length}</span>
+          <h2 className="text-[15px] font-semibold">Bains du jour</h2>
+          <span className="text-xs text-text-muted">{todayEvents.length}</span>
         </div>
-        {activeEntries.length === 0 ? (
+        {todayEvents.length === 0 ? (
           <p className="text-sm text-text-muted py-6 text-center">
-            Aucun lait encore consommable en réserve.
+            Aucun bain enregistré aujourd&apos;hui.
           </p>
         ) : (
           <div className="rounded-2xl bg-surface border border-border px-4">
-            {activeEntries.map((e) => (
-              <MilkEntryRow key={e.id} entry={e} />
+            {todayEvents.map((e) => (
+              <BathEventRow key={e.id} event={e} />
             ))}
           </div>
         )}
@@ -98,7 +87,7 @@ export default function MilkPage() {
 
       {allDays.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-[15px] font-semibold mb-2">Tous les tirages</h2>
+          <h2 className="text-[15px] font-semibold mb-2">Tous les bains</h2>
           <PastDaysAccordion days={allDays} />
         </div>
       )}

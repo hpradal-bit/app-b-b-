@@ -5,6 +5,7 @@ import type {
   ActiveFeeding,
   ActiveSleep,
   Baby,
+  BathEvent,
   Breast,
   CryingEvent,
   DiaperEvent,
@@ -416,6 +417,50 @@ export function markMilkFridged(id: string, fridgedAt: string = new Date().toISO
 export function deleteMilkEntry(id: string): void {
   const all = readJSON<MilkEntry[]>(MILK_KEY, []);
   saveAllMilkEntries(all.filter((e) => e.id !== id));
+}
+
+// ---------- Bath events ----------
+
+const BATH_KEY = "bb:bath_events";
+
+export function getBathEvents(babyId: string): BathEvent[] {
+  return readJSON<BathEvent[]>(BATH_KEY, []).filter((e) => e.babyId === babyId);
+}
+
+function saveAllBathEvents(events: BathEvent[]) {
+  writeJSON(BATH_KEY, events);
+  notify();
+}
+
+export function addBathEvent(babyId: string, time: string, comment?: string): BathEvent {
+  const event: BathEvent = {
+    id: uid(),
+    babyId,
+    time,
+    comment,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  const all = readJSON<BathEvent[]>(BATH_KEY, []);
+  all.push(event);
+  saveAllBathEvents(all);
+  return event;
+}
+
+export function updateBathEvent(
+  id: string,
+  patch: Partial<Pick<BathEvent, "time" | "comment">>
+): void {
+  const all = readJSON<BathEvent[]>(BATH_KEY, []);
+  const idx = all.findIndex((e) => e.id === id);
+  if (idx === -1) return;
+  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
+  saveAllBathEvents(all);
+}
+
+export function deleteBathEvent(id: string): void {
+  const all = readJSON<BathEvent[]>(BATH_KEY, []);
+  saveAllBathEvents(all.filter((e) => e.id !== id));
 }
 
 // ---------- Cross-module context (used by the crying guide) ----------

@@ -6,6 +6,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import TimelineList from "@/components/TimelineList";
 import { dateKey, relativeDayLabel } from "@/lib/format";
 import { buildTimelineByDay, type TimelineEntry } from "@/lib/timeline";
+import { useBath } from "@/lib/useBath";
 import { useDiaper } from "@/lib/useDiaper";
 import { useFeeding } from "@/lib/useFeeding";
 import { useSleep } from "@/lib/useSleep";
@@ -14,10 +15,11 @@ export default function FilPage() {
   const { active: activeFeeding, sessions: feedingSessions } = useFeeding();
   const { active: activeSleep, sessions: sleepSessions } = useSleep();
   const { events: diaperEvents } = useDiaper();
+  const { events: bathEvents } = useBath();
 
   const byDay = useMemo(
-    () => buildTimelineByDay(feedingSessions, sleepSessions, diaperEvents),
-    [feedingSessions, sleepSessions, diaperEvents]
+    () => buildTimelineByDay(feedingSessions, sleepSessions, diaperEvents, bathEvents),
+    [feedingSessions, sleepSessions, diaperEvents, bathEvents]
   );
 
   const todayKey = dateKey(new Date().toISOString());

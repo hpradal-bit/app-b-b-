@@ -52,3 +52,31 @@ export function relativeDayLabel(iso: string): string {
   if (isYesterday(iso)) return "Hier";
   return formatDayLabel(iso);
 }
+
+export interface DayGroup<T> {
+  key: string;
+  label: string;
+  items: T[];
+}
+
+/**
+ * Buckets any timestamped list into calendar days, most recent day first
+ * and each day's items most-recent-first — the shared "browse every day"
+ * pattern used by the simple per-event modules (couches, lait, bain).
+ */
+export function groupByDay<T>(items: T[], getTime: (item: T) => string): DayGroup<T>[] {
+  const byDay = new Map<string, T[]>();
+  for (const item of items) {
+    const key = dateKey(getTime(item));
+    const arr = byDay.get(key) ?? [];
+    arr.push(item);
+    byDay.set(key, arr);
+  }
+  return Array.from(byDay.entries())
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([key, dayItems]) => ({
+      key,
+      label: relativeDayLabel(getTime(dayItems[0])),
+      items: [...dayItems].sort((a, b) => getTime(b).localeCompare(getTime(a))),
+    }));
+}

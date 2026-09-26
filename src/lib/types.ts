@@ -62,6 +62,15 @@ export interface MilkEntry {
   updatedAt: string;
 }
 
+export interface BathEvent {
+  id: string;
+  babyId: string;
+  time: string; // ISO datetime
+  comment?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CryingEvent {
   id: string;
   babyId: string;

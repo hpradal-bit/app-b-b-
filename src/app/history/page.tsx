@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import DiaperEventRow from "@/components/DiaperEventRow";
+import ExportFeedingButton from "@/components/ExportFeedingButton";
 import FeedingGroupList from "@/components/FeedingGroupList";
 import FeedingHistoryChart, { type FeedingDayPoint } from "@/components/FeedingHistoryChart";
 import SleepSessionRow from "@/components/SleepSessionRow";
@@ -161,6 +162,15 @@ export default function HistoryPage() {
           Importer l&apos;historique
         </button>
         {importMessage && <p className="mt-2 text-xs text-accent">{importMessage}</p>}
+      </div>
+
+      <div className="mb-5 rounded-2xl bg-surface border border-border p-4">
+        <p className="text-sm font-medium">Sauvegarde manuelle</p>
+        <p className="text-xs text-text-muted mt-1 mb-3">
+          Copie tout l&apos;historique des tétées dans une note de ton téléphone, en double
+          de ce qui est enregistré dans l&apos;app — au cas où.
+        </p>
+        {baby && <ExportFeedingButton sessions={sessions} babyName={baby.firstName} />}
       </div>
 
       {hasFeedingHistory && (

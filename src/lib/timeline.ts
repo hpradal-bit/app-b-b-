@@ -1,12 +1,13 @@
 import { dateKey } from "./format";
 import { groupFeedingSessions } from "./feedingGrouping";
-import type { DiaperEvent, FeedingSession, SleepSession } from "./types";
+import type { BathEvent, DiaperEvent, FeedingSession, SleepSession } from "./types";
 
 export type TimelineEntry =
   | { id: string; time: string; kind: "feeding"; icon: "🍼"; title: string }
   | { id: string; time: string; kind: "sleep_start"; icon: "💤"; title: string }
   | { id: string; time: string; kind: "sleep_end"; icon: "☀️"; title: string }
-  | { id: string; time: string; kind: "diaper"; icon: "🧷"; title: string };
+  | { id: string; time: string; kind: "diaper"; icon: "🧷"; title: string }
+  | { id: string; time: string; kind: "bath"; icon: "🛁"; title: string };
 
 const DIAPER_LABEL: Record<DiaperEvent["kind"], string> = {
   wet: "Couche changée (mouillée)",
@@ -30,7 +31,8 @@ function formatDur(totalSeconds: number): string {
 export function buildTimelineByDay(
   feedingSessions: FeedingSession[],
   sleepSessions: SleepSession[],
-  diaperEvents: DiaperEvent[]
+  diaperEvents: DiaperEvent[],
+  bathEvents: BathEvent[] = []
 ): Map<string, TimelineEntry[]> {
   const byDay = new Map<string, TimelineEntry[]>();
   const push = (iso: string, entry: TimelineEntry) => {
@@ -95,6 +97,16 @@ export function buildTimelineByDay(
       kind: "diaper",
       icon: "🧷",
       title: e.comment ? `${DIAPER_LABEL[e.kind]} — ${e.comment}` : DIAPER_LABEL[e.kind],
+    });
+  }
+
+  for (const e of bathEvents) {
+    push(e.time, {
+      id: `bath-${e.id}`,
+      time: e.time,
+      kind: "bath",
+      icon: "🛁",
+      title: e.comment ? `Bain — ${e.comment}` : "Bain",
     });
   }
 

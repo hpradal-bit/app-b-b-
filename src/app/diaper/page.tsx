@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import DiaperEventRow from "@/components/DiaperEventRow";
+import PastDaysAccordion, { type PastDayEntry } from "@/components/PastDaysAccordion";
 import ThemeToggle from "@/components/ThemeToggle";
-import { isToday } from "@/lib/format";
+import { groupByDay, isToday } from "@/lib/format";
 import { useDiaper } from "@/lib/useDiaper";
 import type { DiaperKind } from "@/lib/types";
 
@@ -22,6 +23,27 @@ export default function DiaperPage() {
     () => events.filter((e) => isToday(e.time)).sort((a, b) => b.time.localeCompare(a.time)),
     [events]
   );
+
+  const allDays: PastDayEntry[] = useMemo(() => {
+    return groupByDay(events, (e) => e.time)
+      .filter((d) => !isToday(d.items[0].time))
+      .map((d) => ({
+        key: d.key,
+        label: d.label,
+        summary: (
+          <span className="text-xs text-text-muted">
+            {d.items.length} change{d.items.length > 1 ? "s" : ""}
+          </span>
+        ),
+        detail: (
+          <div>
+            {d.items.map((e) => (
+              <DiaperEventRow key={e.id} event={e} />
+            ))}
+          </div>
+        ),
+      }));
+  }, [events]);
 
   useEffect(() => {
     return () => {
@@ -84,6 +106,13 @@ export default function DiaperPage() {
           </div>
         )}
       </div>
+
+      {allDays.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-[15px] font-semibold mb-2">Toutes les couches</h2>
+          <PastDaysAccordion days={allDays} />
+        </div>
+      )}
     </div>
   );
 }
